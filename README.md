@@ -8,99 +8,60 @@ Property Wrapper that provides read and write access to UserDefaults.
 import UserDefaultCompatible
 import UserDefaultPropertyWrapper
 
-struct User : Codable, UserDefaultCompatible {
+// Codable
+struct User: Codable, Equatable, UserDefaultCompatible {
     var name: String
 }
 
-class Record : NSObject, NSCoding, UserDefaultCompatible {
+// NSCoding
+class Record: NSObject, NSCoding, UserDefaultCompatible {
     var name: String? = "abc"
-
-    init(name: String?) {
-        self.name = name
-    }
-    required init?(coder: NSCoder) {
-        name = coder.decodeObject(forKey: "name") as? String
-    }
-
-    func encode(with coder: NSCoder) {
-        coder.encode(name, forKey: "name")
-    }
+    // ...
 }
 
-struct Settings {
+struct First {
+    @UserDefault("number")
+    var number: Int = 10
 
-    @UserDefault("user", default: User(name: "abc"))
-    var user: User
+    @UserDefault("user")
+    var user: User = User(name: "name")
+    
+    @UserDefault("record")
+    var record: Record = Record(name: "name")
 
-    @UserDefault("userOptional", default: nil)
-    var userOptional: User?
+    @UserDefault("optionalNumber")
+    var optionalNumber: Int? = nil
 
-    @UserDefault("users", default: [])
-    var users: [User]
-
-    @UserDefault("userArrayOptional", default: nil)
-    var userArrayOptional: [User]?
-
-    @UserDefault("userDictionary", default: [:])
-    var userDictionary: [String: User]
-
-    @UserDefault("userDictionaryOptional", default: nil)
-    var userDictionaryOptional: [String: User]?
-
-    @UserDefault("int", default: 5)
-    var int: Int
-
-    @UserDefault("intOptional", default: nil)
-    var intOptional: Int?
-
-    @UserDefault("doubleValue", default: 23.56)
-    var doubleValue: Double
-
-    @UserDefault("doubleValueOptional", default: nil)
-    var doubleValueOptional: Double?
-
-    @UserDefault("floatValue", default: 1.23)
-    var floatValue: Float
-
-    @UserDefault("floatValueOptional", default: nil)
-    var floatValueOptional: Float?
-
-    @UserDefault("bool", default: true)
-    var bool: Bool
-
-    @UserDefault("boolOptional", default: nil)
-    var boolOptional: Bool?
-
-    @UserDefault("string", default: "defaultString")
-    var string: String
-
-    @UserDefault("stringOptional", default: nil)
-    var stringOptional: String?
-
-    @UserDefault("url", default: URL(string: "https://goocle.com")!)
-    var url: URL
-
-    @UserDefault("urlOptional", default: nil)
-    var urlOptional: URL?
-
-    @UserDefault("date", default: Date(timeIntervalSinceReferenceDate: 0))
-    var date: Date
-
-    @UserDefault("dateOptional", default: nil)
-    var dateOptional: Date?
-
-    @UserDefault("data", default: Data())
-    var data: Data
-
-    @UserDefault("dataOptional", default: nil)
-    var dataOptional: Data?
-
-    @UserDefault("record", default: Record(name: "default record name"))
-    var record: Record
-
-    @UserDefault("recordOptional", default: nil)
-    var recordOptional: Record?
+    @UserDefault("userArray")
+    var userArray: [User] = [User(name: "first"), User(name: "second")]
+    
+    @UserDefault("recordDictionary")
+    var recordDictionary: [String: Record] = ["key1": Record(name: "first"), "key2": Record(name: "second")]
 
 }
 
+struct Second {
+    @UserDefault("number")
+    var number: Int = 10
+}
+
+var first = First()
+var second = Second()
+
+// Combine.Publisher
+first.$number.sink { print(#line, $0) }
+
+// Synchronized
+first.number = 20
+first.number // => 20
+second.number // => 20
+
+second.number = 30
+first.number // => 30
+second.number // => 30
+
+let publisher = Publishers.Sequence<[Int], Never>(sequence: [40, 50, 60])
+let cancelable = publisher.assign(to: \.value, on: first.$number)
+first.number // => 60
+second.number // => 60
 ```

@@ -1,6 +1,15 @@
 # UserDefaultPropertyWrapper
 
-Property Wrapper that provides read and write access to UserDefaults.
+@UserDefault automatically synchronizes the values of UserDefaults.
+And it provides the `Combine.Publisher`.
+
+## Swift Package Manager
+
+```Package.swift
+dependencies: [
+    .package(url: "https://github.com/ryotapoi/UserDefaultPropertyWrapper.git", "2.0.0"..<"3.0.0"),
+],
+```
 
 ## Sample
 
